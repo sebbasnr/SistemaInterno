@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CarouselModule } from 'ngx-bootstrap/carousel';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -6,7 +7,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CarouselModule, FormsModule, CommonModule],
+  imports: [CarouselModule, FormsModule, CommonModule,HttpClientModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -16,11 +17,13 @@ export class AppComponent {
   password: string = '';
   showPassword: boolean = false;
   passwordIcon: string = 'fas fa-eye-slash';
-  submitted: boolean = false; 
+  submitted: boolean = false;
+
+  constructor(private http: HttpClient) {}
+
   resetSubmission(): void {
-    this.submitted = false
+    this.submitted = false;
   }
-  
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -34,13 +37,22 @@ export class AppComponent {
   }
 
   onSubmit(): void {
-    this.submitted = true; // Establece la bandera de envío a verdadero al intentar enviar el formulario
-
-    if (!this.isValidEmail()) {
-      // Aquí manejas el error de validación del correo
+    this.submitted = true;
+  
+    if (this.isValidEmail()) {
+      this.http.post('http://localhost:5000/login', { email: this.email, password: this.password })
+        .subscribe({
+          next: (response: any) => {
+            console.log('Login exitoso', response);
+            // Asegúrate de usar la clave correcta que coincide con tu backend
+            console.log('Nombre completo:', response.full_name);
+          },
+          error: (error) => {
+            console.error('Error en el login', error);
+          }
+        });
+    } else {
       console.error('El correo debe tener dominio @cotecmar.com');
-      // Puedes mostrar un mensaje o manejar el error como lo necesites.
     }
-    // Si el correo es válido, aquí continuarías con la lógica de envío
   }
 }
